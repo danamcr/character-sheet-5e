@@ -126,6 +126,12 @@ const ActionMenu = {
         const template = document.getElementById('backupModal');
         const form = document.importNode(template.content, true);
 
+        // See if the Web Sharing API will work with files
+        // Appears to be Chrome Android only at this point.
+        if (!navigator.share || !navigator.canShare) {
+            form.querySelector('#sharingOption').hidden = true;
+        }
+
         const checkboxes = [];
         getAllCharacters().forEach((char) => {
             const li = `<li><label><input type="checkbox" name="${char.key}" value="${char.key}" /> ${char.summaryHeader}</label></li>`;

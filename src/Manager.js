@@ -341,25 +341,43 @@ ${JSON.stringify(data)}`;
             // Sadly this simple solution doesn't work in iOS
             // document.location.href = url;
             this.emitter.trigger('backup:email', url);
-        } else {
-            if (typeof window.Blob !== 'function') {
-                // fallback to displaying the data for copy/pasting
-                this.emitter.trigger('backup:textpaste', JSON.stringify(data));
-                return;
-            }
-            // for env that support it, create a file for download
-            const a = document.createElement('a');
-            const file = new Blob([JSON.stringify(data)], { type: 'application/json' });
-            const url = URL.createObjectURL(file);
-            a.href = url;
-            a.download = `${this.appname}_${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}`;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(function () {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 0);
+            return;
         }
+        if (typeof window.Blob !== 'function') {
+            // fallback to displaying the data for copy/pasting
+            this.emitter.trigger('backup:textpaste', JSON.stringify(data));
+            return;
+        }
+        // for env that support it, create a file for download
+        const a = document.createElement('a');
+        const file = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        if (format === 'share') {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                  files: [file],
+                  title: 'CharacterSheet5e Backup',
+                  text: `Character backup: ${names.join(', ')} (${date.toLocaleString()})`,
+                })
+                .then(() => {
+                    // Do nothing.
+                })
+                .catch((error) => {
+                    alert('Sharing failed', error);
+                });
+            } else {
+                alert('Your system doesn\'t support sharing files.');
+            }
+            return;
+        }
+        const url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = `${this.appname}_${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
     },
     /**
      * Restore Backup form handler
