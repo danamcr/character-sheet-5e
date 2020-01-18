@@ -23,7 +23,7 @@ export default class EventEmitter {
     /**
      * Listen to an event
      * @param {String} event Name of the event to listen for.
-     * @param {Function|Array} listener Callback to trigger for event OR an array of [classname, methodName]
+     * @param {Function} listener Callback to trigger for event.
      * @param {Object} boundObj Object to bind the callback to.
      * @return {undefined}
      */

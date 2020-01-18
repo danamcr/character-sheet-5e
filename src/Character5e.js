@@ -8,6 +8,36 @@
     SKILL_EXPERT: 2
  });
 
+ export const attributes = Object.freeze({
+    STRENGTH: 'str',
+    DEXTERITY: 'dex',
+    CONSTITUTION: 'con',
+    INTELLIGENCE: 'intel',
+    WISDOM: 'wis',
+    CHARISMA: 'cha'
+ });
+
+ export const skills = Object.freeze({
+    acrobatics: attributes.DEXTERITY,
+    animal_handling: attributes.WISDOM,
+    arcana: attributes.INTELLIGENCE,
+    athletics: attributes.STRENGTH,
+    deception: attributes.CHARISMA,
+    history: attributes.INTELLIGENCE,
+    insight: attributes.WISDOM,
+    intimidation: attributes.CHARISMA,
+    investigation: attributes.INTELLIGENCE,
+    medicine: attributes.WISDOM,
+    nature: attributes.INTELLIGENCE,
+    perception: attributes.WISDOM,
+    performance: attributes.CHARISMA,
+    persuasion: attributes.CHARISMA,
+    religion: attributes.INTELLIGENCE,
+    sleight_of_hand: attributes.DEXTERITY,
+    stealth: attributes.DEXTERITY,
+    survival: attributes.WISDOM
+ });
+
 export default class Character5e {
     /**
      * Property notes...
@@ -137,7 +167,7 @@ export default class Character5e {
         },
         updated = '',
         key_prev = ''
-    }) {
+    }, emitter = null) {
         this.app = 'character-sheet-5e';
         this.key = key;
         this.charname = charname;
@@ -224,11 +254,81 @@ export default class Character5e {
         this.spells = spells;
         this.updated = updated;
         this.key_prev = key_prev;
+
+        this.emitter = emitter;
     }
     /**
      * A quick summary header for use in lists.
      */
     get summaryHeader() {
         return `${this.charname} (${this.charclass} ${this.level})`;
+    }
+
+    getAttributeMod(attr) {
+        const score = this[attr];
+        const raw = Math.floor((score - 10) / 2);
+        return (raw > 0) ? `+${raw}` : raw.toString();
+    }
+
+    isProficient(skill) {
+        return this.skills[skill] > constants.SKILL_UNSKILLED;
+    }
+    isExpert(skill) {
+        return this.skills[skill] === constants.SKILL_EXPERT;
+    }
+
+    getSkillMod(skill) {
+        if (!this.skills[skill]) {
+            return 0;
+        }
+        const attribute = skills[skill];
+        const attributeMod = this.getAttributeMod(attribute);
+        const profMod = this.proficiency;
+
+
+        let raw = 0 + parseInt(attributeMod, 10);
+        if (this.isProficient(skill)) {
+            raw += profMod;
+        }
+        if (this.isExpert(skill)) {
+            raw += profMod;
+        }
+        return (raw > 0) ? `+${raw}` : raw.toString();
+    }
+
+    addSkill(skill) {
+        if (!this.skills[skill]) {
+            return;
+        }
+        this.skills[skill] = constants.SKILL_PROFICIENT;
+        // trigger event.
+        this.emitter.trigger('char:skill:change', skill, this.getSkillMod(skill));
+    }
+
+    removeSkill(skill) {
+        if (!this.skills[skill]) {
+            return;
+        }
+        this.skills[skill] = constants.SKILL_UNSKILLED;
+        // trigger event.
+        this.emitter.trigger('char:skill:change', skill, this.getSkillMod(skill));
+    }
+
+    addExpertisel(skill) {
+        if (!this.skills[skill]) {
+            return;
+        }
+        this.skills[skill] = constants.SKILL_EXPERT;
+         // trigger event.
+         this.emitter.trigger('char:skill:change', skill, this.getSkillMod(skill));
+    }
+
+    removeExpertise(skill) {
+        if (!this.skills[skill]) {
+            return;
+        }
+        this.skills[skill] = constants.SKILL_PROFICIENT;
+        // trigger event.
+        this.emitter.trigger('char:skill:change', skill, this.getSkillMod(skill));
     }
 };

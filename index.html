@@ -555,6 +555,18 @@
             import { default as Manager } from './src/Manager.js';
             import { default as ui } from './src/UI5e.js';
 
+            import { default as SkillView } from './src/SkillView.js';
+
+
+            const el = document.querySelector('.pc-skills');
+            window.skillView = new SkillView({
+                el: el,
+                events: [
+                    { event: 'click', selector: 'input[data-name=expert]', method: 'log' },
+                    { event: 'click', selector: 'input[data-name=skills]', method: 'flarf' }
+                ]
+            });
+
             /**
             * Register service worker if it's supported
             */
